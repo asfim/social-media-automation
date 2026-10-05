@@ -1,69 +1,59 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Products & Services')
 
 @section('content')
-<div class='d-flex justify-content-between align-items-center mb-4'>
-    <h3 class='mb-0'>Products & Services</h3>
-    <button class='btn btn-primary rounded-pill px-4'>
-        <i class='fa-solid fa-plus me-2'></i> Add New
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="mb-1">Products & Services Catalog</h3>
+        <p class="text-muted mb-0">If the AI knows your pricing and stock, it can sell on your behalf.</p>
+    </div>
+    <button class="btn btn-primary rounded-pill px-4">
+        <i class="fa-solid fa-plus me-2"></i> Add Item
     </button>
 </div>
 
-<div class='card border-0 shadow-sm rounded-4'>
-    <div class='card-body p-0'>
-        <div class='table-responsive'>
-            <table class='table table-hover align-middle mb-0'>
-                <thead class='bg-light'>
-                    <tr>
-                        <th class='ps-4 py-3'>ID</th>
-                        <th class='py-3'>Name / Details</th>
-                        <th class='py-3'>Status</th>
-                        <th class='py-3'>Date</th>
-                        <th class='text-end pe-4 py-3'>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class='ps-4'>#1042</td>
-                        <td>
-                            <div class='fw-medium'>Sample Data Entry</div>
-                            <small class='text-muted'>This is a placeholder row for Products & Services</small>
-                        </td>
-                        <td><span class='badge bg-soft-success'>Active</span></td>
-                        <td class='text-muted small'>Just now</td>
-                        <td class='text-end pe-4'>
-                            <button class='btn btn-sm btn-light rounded-circle'><i class='fa-solid fa-pen'></i></button>
-                            <button class='btn btn-sm btn-light rounded-circle text-danger ms-1'><i class='fa-solid fa-trash'></i></button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class='ps-4'>#1041</td>
-                        <td>
-                            <div class='fw-medium'>Another Record</div>
-                            <small class='text-muted'>System generated</small>
-                        </td>
-                        <td><span class='badge bg-soft-warning'>Pending</span></td>
-                        <td class='text-muted small'>2 hours ago</td>
-                        <td class='text-end pe-4'>
-                            <button class='btn btn-sm btn-light rounded-circle'><i class='fa-solid fa-pen'></i></button>
-                            <button class='btn btn-sm btn-light rounded-circle text-danger ms-1'><i class='fa-solid fa-trash'></i></button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+<div class="row">
+    <!-- Item 1 -->
+    <div class="col-md-4 mb-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+            <div class="bg-light text-center p-4 border-bottom">
+                <i class="fa-solid fa-laptop-code text-primary" style="font-size: 4rem;"></i>
+            </div>
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="fw-bold mb-0">eCommerce Website</h5>
+                    <span class="badge bg-success rounded-pill">Available</span>
+                </div>
+                <h4 class="text-primary fw-bold mb-3">৳20,000</h4>
+                <p class="text-muted small mb-4">Complete Laravel based eCommerce website with bKash/Nagad integration and admin panel.</p>
+                
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-secondary rounded-pill">Edit Details</button>
+                </div>
+            </div>
         </div>
     </div>
-    <div class='card-footer bg-white border-top-0 p-4'>
-        <nav aria-label='Page navigation'>
-            <ul class='pagination pagination-sm justify-content-end mb-0'>
-                <li class='page-item disabled'><a class='page-link' href='#'>Previous</a></li>
-                <li class='page-item active'><a class='page-link' href='#'>1</a></li>
-                <li class='page-item'><a class='page-link' href='#'>2</a></li>
-                <li class='page-item'><a class='page-link' href='#'>Next</a></li>
-            </ul>
-        </nav>
+    
+    <!-- Item 2 -->
+    <div class="col-md-4 mb-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+            <div class="bg-light text-center p-4 border-bottom">
+                <i class="fa-solid fa-bullhorn text-danger" style="font-size: 4rem;"></i>
+            </div>
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="fw-bold mb-0">Social Media Marketing</h5>
+                    <span class="badge bg-success rounded-pill">Available</span>
+                </div>
+                <h4 class="text-primary fw-bold mb-3">৳15,000 <small class="text-muted fs-6 fw-normal">/ month</small></h4>
+                <p class="text-muted small mb-4">Monthly retainer for managing Facebook and Instagram pages including 15 posts and ad management.</p>
+                
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-secondary rounded-pill">Edit Details</button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 @endsection
-

@@ -1,69 +1,65 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Frequently Asked Questions')
 
 @section('content')
-<div class='d-flex justify-content-between align-items-center mb-4'>
-    <h3 class='mb-0'>Frequently Asked Questions</h3>
-    <button class='btn btn-primary rounded-pill px-4'>
-        <i class='fa-solid fa-plus me-2'></i> Add New
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="mb-1">Frequently Asked Questions</h3>
+        <p class="text-muted mb-0">Add direct Q&A pairs for the most common customer queries.</p>
+    </div>
+    <button class="btn btn-primary rounded-pill px-4">
+        <i class="fa-solid fa-plus me-2"></i> Add New FAQ
     </button>
 </div>
 
-<div class='card border-0 shadow-sm rounded-4'>
-    <div class='card-body p-0'>
-        <div class='table-responsive'>
-            <table class='table table-hover align-middle mb-0'>
-                <thead class='bg-light'>
-                    <tr>
-                        <th class='ps-4 py-3'>ID</th>
-                        <th class='py-3'>Name / Details</th>
-                        <th class='py-3'>Status</th>
-                        <th class='py-3'>Date</th>
-                        <th class='text-end pe-4 py-3'>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class='ps-4'>#1042</td>
-                        <td>
-                            <div class='fw-medium'>Sample Data Entry</div>
-                            <small class='text-muted'>This is a placeholder row for Frequently Asked Questions</small>
-                        </td>
-                        <td><span class='badge bg-soft-success'>Active</span></td>
-                        <td class='text-muted small'>Just now</td>
-                        <td class='text-end pe-4'>
-                            <button class='btn btn-sm btn-light rounded-circle'><i class='fa-solid fa-pen'></i></button>
-                            <button class='btn btn-sm btn-light rounded-circle text-danger ms-1'><i class='fa-solid fa-trash'></i></button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class='ps-4'>#1041</td>
-                        <td>
-                            <div class='fw-medium'>Another Record</div>
-                            <small class='text-muted'>System generated</small>
-                        </td>
-                        <td><span class='badge bg-soft-warning'>Pending</span></td>
-                        <td class='text-muted small'>2 hours ago</td>
-                        <td class='text-end pe-4'>
-                            <button class='btn btn-sm btn-light rounded-circle'><i class='fa-solid fa-pen'></i></button>
-                            <button class='btn btn-sm btn-light rounded-circle text-danger ms-1'><i class='fa-solid fa-trash'></i></button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+<div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body p-4">
+        <div class="accordion" id="faqAccordion">
+            
+            <div class="accordion-item border-0 mb-3 bg-light rounded-3 shadow-sm">
+                <h2 class="accordion-header" id="headingOne">
+                    <button class="accordion-button rounded-3 fw-bold bg-transparent" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                        Q: Do you offer discounts or EMI for web development?
+                    </button>
+                </h2>
+                <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body pt-0 pb-4">
+                        <p class="mb-3 text-muted">A: Yes, we offer up to 3 months of 0% EMI on credit cards from selected banks. We also offer a flat 10% discount on upfront full payments.</p>
+                        <div class="d-flex gap-2">
+                            <span class="badge bg-white text-primary border">Category: Pricing</span>
+                            <span class="badge bg-white text-success border">Status: Active</span>
+                        </div>
+                        <div class="mt-3">
+                            <button class="btn btn-sm btn-outline-primary rounded-pill px-3 me-1">Edit</button>
+                            <button class="btn btn-sm btn-outline-danger rounded-pill px-3">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="accordion-item border-0 mb-3 bg-light rounded-3 shadow-sm">
+                <h2 class="accordion-header" id="headingTwo">
+                    <button class="accordion-button collapsed rounded-3 fw-bold bg-transparent" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+                        Q: Where is your office located? Can I meet you in person?
+                    </button>
+                </h2>
+                <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body pt-0 pb-4">
+                        <p class="mb-3 text-muted">A: Our physical office is located at Banani, Road 11, Dhaka. You are always welcome to visit us from Sunday to Thursday between 10 AM and 6 PM.</p>
+                        <div class="d-flex gap-2">
+                            <span class="badge bg-white text-primary border">Category: General Info</span>
+                            <span class="badge bg-white text-success border">Status: Active</span>
+                        </div>
+                        <div class="mt-3">
+                            <button class="btn btn-sm btn-outline-primary rounded-pill px-3 me-1">Edit</button>
+                            <button class="btn btn-sm btn-outline-danger rounded-pill px-3">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
-    </div>
-    <div class='card-footer bg-white border-top-0 p-4'>
-        <nav aria-label='Page navigation'>
-            <ul class='pagination pagination-sm justify-content-end mb-0'>
-                <li class='page-item disabled'><a class='page-link' href='#'>Previous</a></li>
-                <li class='page-item active'><a class='page-link' href='#'>1</a></li>
-                <li class='page-item'><a class='page-link' href='#'>2</a></li>
-                <li class='page-item'><a class='page-link' href='#'>Next</a></li>
-            </ul>
-        </nav>
     </div>
 </div>
 @endsection
-
