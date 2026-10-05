@@ -210,7 +210,7 @@
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
-        function appendAIMessage(userText) {
+        async function appendAIMessage(userText) {
             // Add typing indicator
             const typingId = 'typing-' + Date.now();
             const typingHtml = `
@@ -223,51 +223,40 @@
             chatBox.insertAdjacentHTML('beforeend', typingHtml);
             chatBox.scrollTop = chatBox.scrollHeight;
 
-            // Simulate network delay then respond
-            setTimeout(() => {
+            try {
+                // Call the real backend API
+                const response = await fetch('/api/internal/ai/chat/simulate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({ message: userText })
+                });
+                
+                const data = await response.json();
+                
+                // Remove typing indicator
                 document.getElementById(typingId).remove();
-                
-                const textLower = userText.toLowerCase();
-                let response = "That's an interesting question! Since I am currently in simulation mode without a live API key, I don't have the full context yet. But I am ready to assist once activated!";
-                let intent = "General";
-                let confidence = "75%";
-                
-                if (textLower.includes("price") || textLower.includes("cost") || textLower.includes("koto") || textLower.includes("taka") || textLower.includes("how much")) {
-                    response = "Our eCommerce packages start at 20,000 BDT, while social media marketing starts at 15,000 BDT/month. Would you like a detailed breakdown?";
-                    intent = "Pricing Inquiry";
-                    confidence = "98%";
-                } else if (textLower.includes("hello") || textLower.includes("hi") || textLower.includes("hey")) {
-                    response = "Hello there! Welcome to Atomation Digital. How can I help you grow your business today?";
-                    intent = "Greeting";
-                    confidence = "99%";
-                } else if (textLower.includes("location") || textLower.includes("address") || textLower.includes("where") || textLower.includes("kothay") || textLower.includes("office")) {
-                    response = "Our physical office is located at Banani, Road 11, Dhaka. You can visit us from Sunday to Thursday (10 AM to 6 PM).";
-                    intent = "Location Inquiry";
-                    confidence = "95%";
-                } else if (textLower.includes("human") || textLower.includes("real person") || textLower.includes("admin")) {
-                    response = "I understand. Let me hand this conversation over to a human admin who will assist you shortly.";
-                    intent = "Human Handoff";
-                    confidence = "100%";
-                } else if (textLower.includes("service") || textLower.includes("ki kor") || textLower.includes("what do you do") || textLower.includes("offer")) {
-                    response = "We offer Web Development, Social Media Marketing, and AI Chatbot solutions. Which one are you interested in?";
-                    intent = "Service Inquiry";
-                    confidence = "92%";
-                }
                 
                 const html = `
                 <div class="chat-bubble ai" style="animation: fadeIn 0.3s ease;">
                     <div class="chat-avatar avatar-ai"><i class="fa-solid fa-robot"></i></div>
                     <div>
-                        <div class="chat-content">${response}</div>
+                        <div class="chat-content">${data.reply}</div>
                         <div class="chat-debug">
-                            <span><i class="fa-solid fa-bolt text-warning"></i> Intent: ${intent}</span>
-                            <span><i class="fa-solid fa-bullseye text-success"></i> Confidence: ${confidence}</span>
+                            <span><i class="fa-solid fa-bolt text-warning"></i> Intent: ${data.intent}</span>
+                            <span><i class="fa-solid fa-bullseye text-success"></i> Confidence: ${data.confidence}</span>
                         </div>
                     </div>
                 </div>`;
                 chatBox.insertAdjacentHTML('beforeend', html);
                 chatBox.scrollTop = chatBox.scrollHeight;
-            }, 1000);
+                
+            } catch (error) {
+                document.getElementById(typingId).remove();
+                console.error("API Error:", error);
+            }
         }
 
         function handleSend() {
