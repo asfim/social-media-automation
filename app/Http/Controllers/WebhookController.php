@@ -35,12 +35,19 @@ class WebhookController extends Controller
     {
         $payload = $request->all();
 
-        // Ensure this is a page event
-        if (isset($payload['object']) && $payload['object'] === 'page') {
+        $platforms = [
+            'page' => 'facebook',
+            'instagram' => 'instagram',
+            'whatsapp_business_account' => 'whatsapp',
+        ];
+
+        $object = $payload['object'] ?? null;
+
+        if ($object && isset($platforms[$object])) {
             
             // Fast acknowledge to Meta so they don't timeout (200 OK must be sent within 20 secs)
             // The actual processing is deferred to the MetaService/Queue
-            $this->metaService->storeEvent($payload, 'facebook');
+            $this->metaService->storeEvent($payload, $platforms[$object]);
             
             return response('EVENT_RECEIVED', 200);
         }

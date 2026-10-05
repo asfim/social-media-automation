@@ -2,6 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\SocialInboxController;
+use App\Http\Controllers\CRMController;
+
 // Dashboard
 Route::get('/', function () {
     return view('dashboard');
@@ -9,9 +12,9 @@ Route::get('/', function () {
 
 // Social Inbox
 Route::prefix('inbox')->name('inbox.')->group(function () {
-    Route::get('/messenger', function () { return view('inbox.messenger'); })->name('messenger');
-    Route::get('/comments', function () { return view('inbox.comments'); })->name('comments');
-    Route::get('/conversations', function () { return view('inbox.conversations'); })->name('conversations');
+    Route::get('/messenger', [SocialInboxController::class, 'messenger'])->name('messenger');
+    Route::get('/comments', [SocialInboxController::class, 'comments'])->name('comments');
+    Route::get('/conversations', [SocialInboxController::class, 'conversations'])->name('conversations');
 });
 
 // Automation
@@ -34,11 +37,11 @@ Route::prefix('ai')->name('ai.')->group(function () {
 
 // CRM Leads
 Route::prefix('leads')->name('leads.')->group(function () {
-    Route::get('/', function () { return view('leads.all'); })->name('all');
+    Route::get('/', [CRMController::class, 'all'])->name('all');
     Route::get('/new', function () { return view('leads.new'); })->name('new');
-    Route::get('/hot', function () { return view('leads.hot'); })->name('hot');
+    Route::get('/hot', [CRMController::class, 'hot'])->name('hot');
     Route::get('/follow-up', function () { return view('leads.follow-up'); })->name('follow-up');
-    Route::get('/pipeline', function () { return view('leads.pipeline'); })->name('pipeline');
+    Route::get('/pipeline', [CRMController::class, 'pipeline'])->name('pipeline');
 });
 
 // Settings
@@ -46,5 +49,6 @@ Route::prefix('settings')->name('settings.')->group(function () {
     Route::get('/business', function () { return view('settings.business'); })->name('business');
     Route::get('/facebook', function () { return view('settings.facebook'); })->name('facebook');
     Route::get('/instagram', function () { return view('settings.instagram'); })->name('instagram');
+    Route::get('/whatsapp', function () { return view('settings.whatsapp'); })->name('whatsapp');
     Route::get('/general', function () { return view('settings.general'); })->name('general');
 });
