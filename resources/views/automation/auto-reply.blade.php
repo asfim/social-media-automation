@@ -1,69 +1,71 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Auto Reply Rules')
 
 @section('content')
-<div class='d-flex justify-content-between align-items-center mb-4'>
-    <h3 class='mb-0'>Auto Reply Rules</h3>
-    <button class='btn btn-primary rounded-pill px-4'>
-        <i class='fa-solid fa-plus me-2'></i> Add New
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="mb-1">Auto Reply Rules</h3>
+        <p class="text-muted mb-0">Configure specific templates for known AI Intents.</p>
+    </div>
+    <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addRuleModal">
+        <i class="fa-solid fa-plus me-2"></i> Create Rule
     </button>
 </div>
 
-<div class='card border-0 shadow-sm rounded-4'>
-    <div class='card-body p-0'>
-        <div class='table-responsive'>
-            <table class='table table-hover align-middle mb-0'>
-                <thead class='bg-light'>
-                    <tr>
-                        <th class='ps-4 py-3'>ID</th>
-                        <th class='py-3'>Name / Details</th>
-                        <th class='py-3'>Status</th>
-                        <th class='py-3'>Date</th>
-                        <th class='text-end pe-4 py-3'>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class='ps-4'>#1042</td>
-                        <td>
-                            <div class='fw-medium'>Sample Data Entry</div>
-                            <small class='text-muted'>This is a placeholder row for Auto Reply Rules</small>
-                        </td>
-                        <td><span class='badge bg-soft-success'>Active</span></td>
-                        <td class='text-muted small'>Just now</td>
-                        <td class='text-end pe-4'>
-                            <button class='btn btn-sm btn-light rounded-circle'><i class='fa-solid fa-pen'></i></button>
-                            <button class='btn btn-sm btn-light rounded-circle text-danger ms-1'><i class='fa-solid fa-trash'></i></button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class='ps-4'>#1041</td>
-                        <td>
-                            <div class='fw-medium'>Another Record</div>
-                            <small class='text-muted'>System generated</small>
-                        </td>
-                        <td><span class='badge bg-soft-warning'>Pending</span></td>
-                        <td class='text-muted small'>2 hours ago</td>
-                        <td class='text-end pe-4'>
-                            <button class='btn btn-sm btn-light rounded-circle'><i class='fa-solid fa-pen'></i></button>
-                            <button class='btn btn-sm btn-light rounded-circle text-danger ms-1'><i class='fa-solid fa-trash'></i></button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+<div class="row">
+    <!-- Pricing Intent -->
+    <div class="col-md-6 mb-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100 border-start border-4 border-primary">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <span class="badge bg-light text-primary border mb-2">Intent: Pricing Inquiry</span>
+                        <h5 class="fw-bold mb-0">Pricing & Packages</h5>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" checked>
+                    </div>
+                </div>
+                <div class="bg-light p-3 rounded-3 mb-3">
+                    <p class="mb-0 small fst-italic">"Hi {{ '{customer_name}' }}! Our basic package starts at $99/mo. Would you like a detailed PDF brochure?"</p>
+                </div>
+                <div class="d-flex justify-content-between align-items-center text-muted small">
+                    <span>Used 1,204 times</span>
+                    <div>
+                        <button class="btn btn-sm btn-link text-primary p-0 me-2"><i class="fa-solid fa-pen"></i> Edit</button>
+                        <button class="btn btn-sm btn-link text-danger p-0"><i class="fa-solid fa-trash"></i> Delete</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    <div class='card-footer bg-white border-top-0 p-4'>
-        <nav aria-label='Page navigation'>
-            <ul class='pagination pagination-sm justify-content-end mb-0'>
-                <li class='page-item disabled'><a class='page-link' href='#'>Previous</a></li>
-                <li class='page-item active'><a class='page-link' href='#'>1</a></li>
-                <li class='page-item'><a class='page-link' href='#'>2</a></li>
-                <li class='page-item'><a class='page-link' href='#'>Next</a></li>
-            </ul>
-        </nav>
+    
+    <!-- Greeting Intent -->
+    <div class="col-md-6 mb-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100 border-start border-4 border-success">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <span class="badge bg-light text-success border mb-2">Intent: Greeting</span>
+                        <h5 class="fw-bold mb-0">Welcome Message</h5>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" checked>
+                    </div>
+                </div>
+                <div class="bg-light p-3 rounded-3 mb-3">
+                    <p class="mb-0 small fst-italic">"Hello there! Welcome to Atomation. How can our AI assistant help you today?"</p>
+                </div>
+                <div class="d-flex justify-content-between align-items-center text-muted small">
+                    <span>Used 5,420 times</span>
+                    <div>
+                        <button class="btn btn-sm btn-link text-primary p-0 me-2"><i class="fa-solid fa-pen"></i> Edit</button>
+                        <button class="btn btn-sm btn-link text-danger p-0"><i class="fa-solid fa-trash"></i> Delete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 @endsection
-
