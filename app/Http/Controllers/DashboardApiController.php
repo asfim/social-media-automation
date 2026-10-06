@@ -63,6 +63,20 @@ class DashboardApiController extends Controller
         return response()->json(['success' => true, 'data' => $product]);
     }
 
+    public function updateProduct(Request $request, Product $product)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string',
+            'price' => 'nullable|numeric',
+            'description' => 'nullable|string',
+            'category' => 'nullable|string'
+        ]);
+
+        $product->update($validated);
+
+        return response()->json(['success' => true, 'data' => $product]);
+    }
+
     /**
      * Handle Playground Chat (Simulates AI response via backend)
      */

@@ -32,5 +32,6 @@ Route::prefix('internal')->group(function () {
     Route::post('/settings/business', [DashboardApiController::class, 'saveBusinessSettings']);
     Route::post('/ai/faq', [DashboardApiController::class, 'addFaq']);
     Route::post('/ai/products', [DashboardApiController::class, 'addProduct']);
+    Route::put('/ai/products/{product}', [DashboardApiController::class, 'updateProduct']);
     Route::post('/ai/chat/simulate', [DashboardApiController::class, 'simulateChat']);
 });

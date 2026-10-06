@@ -66,7 +66,28 @@ class MetaService
      */
     public function me(string $token): array
     {
-        return $this->result(Http::timeout(15)->withToken($token)->get($this->graph('me'), ['fields' => 'id,name']));
+        $res = $this->result(Http::timeout(15)->withToken($token)->get($this->graph('me'), ['fields' => 'id,name']));
+        
+        // If GET /me fails (e.g. missing pages_read_engagement), fallback to debug_token
+        if (!$res['ok']) {
+            $debugRes = Http::timeout(15)->get($this->graph('debug_token'), [
+                'input_token' => $token,
+                'access_token' => $token
+            ])->json();
+            
+            if (isset($debugRes['data']['profile_id'])) {
+                return [
+                    'ok' => true,
+                    'error' => null,
+                    'data' => [
+                        'id' => $debugRes['data']['profile_id'],
+                        'name' => 'Facebook Page'
+                    ]
+                ];
+            }
+        }
+        
+        return $res;
     }
 
     /**

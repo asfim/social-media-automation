@@ -34,7 +34,10 @@ Route::prefix('ai')->name('ai.')->group(function () {
     Route::get('/chat', function () { return view('ai.chat'); })->name('chat');
     Route::get('/knowledge', function () { return view('ai.knowledge'); })->name('knowledge');
     Route::get('/faq', function () { return view('ai.faq'); })->name('faq');
-    Route::get('/products-services', function () { return view('ai.products'); })->name('products');
+    Route::get('/products-services', function () { 
+        $products = \App\Models\Product::all();
+        return view('ai.products', compact('products')); 
+    })->name('products');
     Route::get('/settings', function () { return view('ai.settings'); })->name('settings');
 });
 
