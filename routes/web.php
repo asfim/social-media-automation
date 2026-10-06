@@ -38,10 +38,11 @@ Route::prefix('ai')->name('ai.')->group(function () {
 // CRM Leads
 Route::prefix('leads')->name('leads.')->group(function () {
     Route::get('/', [CRMController::class, 'all'])->name('all');
-    Route::get('/new', function () { return view('leads.new'); })->name('new');
+    Route::get('/new', [CRMController::class, 'newLeads'])->name('new');
     Route::get('/hot', [CRMController::class, 'hot'])->name('hot');
-    Route::get('/follow-up', function () { return view('leads.follow-up'); })->name('follow-up');
+    Route::get('/follow-up', [CRMController::class, 'followUp'])->name('follow-up');
     Route::get('/pipeline', [CRMController::class, 'pipeline'])->name('pipeline');
+    Route::post('/', [CRMController::class, 'store'])->name('store');
 });
 
 // Settings

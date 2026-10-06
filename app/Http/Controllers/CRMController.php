@@ -37,12 +37,56 @@ class CRMController extends Controller
      */
     public function hot()
     {
-        $leads = Lead::where('lead_score', '>=', 90)
-            ->orWhere('lead_status', 'Interested')
+        $leads = Lead::where(function ($q) {
+                $q->where('lead_score', '>=', 90)
+                  ->orWhere('lead_status', 'Interested');
+            })
             ->latest()
             ->paginate(20);
             
         return view('leads.hot', compact('leads'));
+    }
+
+    /**
+     * Display only new leads.
+     */
+    public function newLeads()
+    {
+        $leads = Lead::where('lead_status', 'New')->latest()->paginate(20);
+        return view('leads.new', compact('leads'));
+    }
+
+    /**
+     * Display leads that need a follow up.
+     */
+    public function followUp()
+    {
+        $leads = Lead::whereIn('lead_status', ['Contacted', 'Negotiation'])->latest()->paginate(20);
+        return view('leads.follow-up', compact('leads'));
+    }
+
+    /**
+     * Manually add a lead.
+     */
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:50',
+            'email' => 'nullable|email|max:255',
+            'platform' => 'nullable|string|max:50',
+            'interested_service' => 'nullable|string|max:255',
+            'notes' => 'nullable|string',
+        ]);
+
+        Lead::create($data + [
+            'lead_status' => 'New',
+            'lead_score' => 0,
+            'source' => 'Manual',
+            'last_contact' => now(),
+        ]);
+
+        return back()->with('success', 'Lead added successfully.');
     }
 
     /**
