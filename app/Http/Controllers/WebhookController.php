@@ -48,6 +48,9 @@ class WebhookController extends Controller
             // Fast acknowledge to Meta so they don't timeout (200 OK must be sent within 20 secs)
             // The actual processing is deferred to the MetaService/Queue
             $this->metaService->storeEvent($payload, $platforms[$object]);
+
+            // Runs right after the 200 response is sent, so no `queue:work` is required
+            \App\Jobs\ProcessIncomingMessage::dispatchAfterResponse($payload, $platforms[$object]);
             
             return response('EVENT_RECEIVED', 200);
         }

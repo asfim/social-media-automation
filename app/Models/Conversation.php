@@ -22,6 +22,14 @@ class Conversation extends Model
         'last_message_at'
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'last_message_at' => 'datetime',
+            'ai_active' => 'boolean',
+        ];
+    }
+
     public function account()
     {
         return $this->belongsTo(SocialAccount::class, 'social_account_id');
@@ -30,5 +38,10 @@ class Conversation extends Model
     public function messages()
     {
         return $this->hasMany(ConversationMessage::class);
+    }
+
+    public function lastMessage()
+    {
+        return $this->hasOne(ConversationMessage::class)->latestOfMany();
     }
 }

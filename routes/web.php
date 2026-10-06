@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\SocialInboxController;
 use App\Http\Controllers\CRMController;
+use App\Http\Controllers\MetaSettingsController;
 
 // Dashboard
 Route::get('/', function () {
@@ -15,6 +16,8 @@ Route::prefix('inbox')->name('inbox.')->group(function () {
     Route::get('/messenger', [SocialInboxController::class, 'messenger'])->name('messenger');
     Route::get('/comments', [SocialInboxController::class, 'comments'])->name('comments');
     Route::get('/conversations', [SocialInboxController::class, 'conversations'])->name('conversations');
+    Route::post('/conversations/{id}/send', [SocialInboxController::class, 'sendMessage'])->name('send');
+    Route::post('/conversations/{id}/toggle-ai', [SocialInboxController::class, 'toggleAi'])->name('toggle-ai');
 });
 
 // Automation
@@ -48,7 +51,9 @@ Route::prefix('leads')->name('leads.')->group(function () {
 // Settings
 Route::prefix('settings')->name('settings.')->group(function () {
     Route::get('/business', function () { return view('settings.business'); })->name('business');
-    Route::get('/facebook', function () { return view('settings.facebook'); })->name('facebook');
+    Route::get('/facebook', [MetaSettingsController::class, 'facebook'])->name('facebook');
+    Route::post('/facebook', [MetaSettingsController::class, 'saveFacebook'])->name('facebook.save');
+    Route::post('/facebook/disconnect', [MetaSettingsController::class, 'disconnectFacebook'])->name('facebook.disconnect');
     Route::get('/instagram', function () { return view('settings.instagram'); })->name('instagram');
     Route::get('/whatsapp', function () { return view('settings.whatsapp'); })->name('whatsapp');
     Route::get('/general', function () { return view('settings.general'); })->name('general');
