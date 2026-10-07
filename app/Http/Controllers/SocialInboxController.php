@@ -51,14 +51,32 @@ class SocialInboxController extends Controller
     }
 
     /**
-     * Display the Social Comments tracker.
+     * Display the Social Comments tracker with Post Grouping & Filters.
      */
-    public function comments()
+    public function comments(Request $request)
     {
-        $comments = Comment::latest()
-            ->paginate(20);
+        $posts = Comment::select('external_post_id', \DB::raw('count(*) as comments_count'), \DB::raw('max(created_at) as latest_comment_at'))
+            ->whereNotNull('external_post_id')
+            ->where('external_post_id', '!=', '')
+            ->groupBy('external_post_id')
+            ->orderByDesc('latest_comment_at')
+            ->get();
 
-        return view('inbox.comments', compact('comments'));
+        $selectedPostId = $request->get('post_id');
+
+        $query = Comment::latest();
+
+        if ($selectedPostId) {
+            $query->where('external_post_id', $selectedPostId);
+        }
+
+        if ($request->filled('platform') && $request->platform !== 'all') {
+            $query->where('platform', $request->platform);
+        }
+
+        $comments = $query->paginate(20)->withQueryString();
+
+        return view('inbox.comments', compact('comments', 'posts', 'selectedPostId'));
     }
 
     /**

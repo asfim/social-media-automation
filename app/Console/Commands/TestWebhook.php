@@ -31,7 +31,7 @@ class TestWebhook extends Command
     {
         $type = $this->argument('type');
 
-        $account = SocialAccount::first();
+        $account = SocialAccount::where('is_active', true)->latest('updated_at')->first();
         if (!$account) {
             $this->info("Creating a dummy Facebook SocialAccount for testing...");
             $account = SocialAccount::create([

@@ -158,4 +158,15 @@ class MetaService
             'message' => $text,
         ]));
     }
+
+    /**
+     * Send a private Messenger message to a user who commented on a Page post.
+     */
+    public function sendPrivateReplyToComment(string $token, string $commentId, string $text): array
+    {
+        return $this->result(Http::timeout(20)->withToken($token)->post($this->graph('me/messages'), [
+            'recipient' => ['comment_id' => $commentId],
+            'message' => ['text' => $text],
+        ]));
+    }
 }

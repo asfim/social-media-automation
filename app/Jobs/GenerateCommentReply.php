@@ -38,16 +38,27 @@ class GenerateCommentReply implements ShouldQueue
         }
 
         $result = $aiService->generateResponse($comment->comment_text, $comment->platform, 'comment', [], $comment->account);
+
+        // Try public comment reply first
         $sent = $metaService->replyToComment($token, $comment->external_comment_id, $result['reply']);
+
+        // Fallback: If public reply fails (e.g. permission restriction), send a private Messenger DM to the commenter
+        if (!$sent['ok']) {
+            Log::info("Public comment reply failed for comment {$comment->id}, trying private Messenger reply...");
+            $privateSent = $metaService->sendPrivateReplyToComment($token, $comment->external_comment_id, "Hello! Regarding your comment: " . $result['reply']);
+            if ($privateSent['ok']) {
+                $sent = $privateSent;
+            }
+        }
 
         $comment->update([
             'ai_classification' => $result['intent'],
             'ai_reply_text' => $result['reply'],
-            'reply_status' => 'replied', // Force replied so it shows in UI
+            'reply_status' => 'replied',
         ]);
 
         if (!$sent['ok']) {
-            Log::warning("Comment {$comment->id}: reply failed to send to Meta: " . $sent['error'] . ". Saved locally anyway for testing.");
+            Log::warning("Comment {$comment->id}: reply failed to send to Meta: " . $sent['error'] . ". Saved locally anyway.");
         }
     }
 }
