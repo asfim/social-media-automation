@@ -51,6 +51,13 @@ class ProcessIncomingMessage implements ShouldQueue
                 ->first();
 
             if (!$account) {
+                $account = SocialAccount::where('platform', 'facebook')
+                    ->where('is_active', true)
+                    ->latest()
+                    ->first();
+            }
+
+            if (!$account) {
                 Log::warning("No connected Facebook page for id {$pageId}. Connect it in Settings > Facebook.");
                 continue;
             }
