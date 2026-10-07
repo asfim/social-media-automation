@@ -32,7 +32,10 @@ Route::prefix('automation')->name('automation.')->group(function () {
 // AI Assistant
 Route::prefix('ai')->name('ai.')->group(function () {
     Route::get('/chat', function () { return view('ai.chat'); })->name('chat');
-    Route::get('/knowledge', function () { return view('ai.knowledge'); })->name('knowledge');
+    Route::get('/knowledge', function () { 
+        $knowledge = \App\Models\BusinessKnowledge::all();
+        return view('ai.knowledge', compact('knowledge')); 
+    })->name('knowledge');
     Route::get('/faq', function () { return view('ai.faq'); })->name('faq');
     Route::get('/products-services', function () { 
         $products = \App\Models\Product::all();

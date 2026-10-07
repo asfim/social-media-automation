@@ -46,6 +46,39 @@ class DashboardApiController extends Controller
         return response()->json(['success' => true, 'data' => $faq]);
     }
 
+    public function addKnowledge(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string',
+            'category' => 'nullable|string',
+            'content' => 'required|string',
+        ]);
+
+        $validated['category'] = $validated['category'] ?? 'general';
+
+        $knowledge = \App\Models\BusinessKnowledge::create($validated);
+
+        return response()->json(['success' => true, 'data' => $knowledge]);
+    }
+
+    public function updateKnowledge(Request $request, \App\Models\BusinessKnowledge $knowledge)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string',
+            'content' => 'required|string',
+        ]);
+
+        $knowledge->update($validated);
+
+        return response()->json(['success' => true, 'data' => $knowledge]);
+    }
+
+    public function deleteKnowledge(\App\Models\BusinessKnowledge $knowledge)
+    {
+        $knowledge->delete();
+        return response()->json(['success' => true]);
+    }
+
     /**
      * Add a new Product/Service from /ai/products UI
      */

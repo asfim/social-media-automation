@@ -30,6 +30,9 @@ use App\Http\Controllers\DashboardApiController;
 
 Route::prefix('internal')->group(function () {
     Route::post('/settings/business', [DashboardApiController::class, 'saveBusinessSettings']);
+    Route::post('/ai/knowledge', [DashboardApiController::class, 'addKnowledge']);
+    Route::put('/ai/knowledge/{knowledge}', [DashboardApiController::class, 'updateKnowledge']);
+    Route::delete('/ai/knowledge/{knowledge}', [DashboardApiController::class, 'deleteKnowledge']);
     Route::post('/ai/faq', [DashboardApiController::class, 'addFaq']);
     Route::post('/ai/products', [DashboardApiController::class, 'addProduct']);
     Route::put('/ai/products/{product}', [DashboardApiController::class, 'updateProduct']);
