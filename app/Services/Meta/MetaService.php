@@ -101,6 +101,33 @@ class MetaService
     }
 
     /**
+     * Fetch connected Facebook Page details (about, description, contact, address).
+     */
+    public function fetchPageDetails(string $pageId, string $token): array
+    {
+        return \Cache::remember("fb_page_details_{$pageId}", 3600, function () use ($pageId, $token) {
+            $res = $this->result(Http::timeout(10)->withToken($token)->get($this->graph($pageId), [
+                'fields' => 'id,name,about,description,emails,phone,single_line_address,website'
+            ]));
+            return $res['ok'] ? $res['data'] : [];
+        });
+    }
+
+    /**
+     * Fetch connected Facebook Page recent posts with captions and image attachments.
+     */
+    public function fetchPagePosts(string $pageId, string $token): array
+    {
+        return \Cache::remember("fb_page_posts_{$pageId}", 1800, function () use ($pageId, $token) {
+            $res = $this->result(Http::timeout(12)->withToken($token)->get($this->graph("{$pageId}/published_posts"), [
+                'fields' => 'message,caption,description,created_time,attachments{media,title,description}',
+                'limit' => 15,
+            ]));
+            return $res['ok'] ? ($res['data']['data'] ?? []) : [];
+        });
+    }
+
+    /**
      * Fetch a Messenger user's name and avatar.
      */
     public function fetchProfile(string $token, string $psid): array

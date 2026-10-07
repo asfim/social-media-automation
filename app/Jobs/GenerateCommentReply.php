@@ -37,7 +37,7 @@ class GenerateCommentReply implements ShouldQueue
             return;
         }
 
-        $result = $aiService->generateResponse($comment->comment_text, $comment->platform, 'comment');
+        $result = $aiService->generateResponse($comment->comment_text, $comment->platform, 'comment', [], $comment->account);
         $sent = $metaService->replyToComment($token, $comment->external_comment_id, $result['reply']);
 
         $comment->update([

@@ -50,7 +50,7 @@ class GenerateAIResponse implements ShouldQueue
                 'content' => $m->message_text,
             ])->all();
 
-        $result = $aiService->generateResponse($this->messageText, $conversation->platform, 'message', $history);
+        $result = $aiService->generateResponse($this->messageText, $conversation->platform, 'message', $history, $conversation->account);
 
         $token = $conversation->account->access_token ?? null;
         if (!$token) {
