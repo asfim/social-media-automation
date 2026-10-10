@@ -136,5 +136,38 @@ class SocialInboxController extends Controller
             'warning' => $error,
             'time' => $message->created_at->format('h:i A'),
         ]);
+    /**
+     * Simulate a customer commenting on a Facebook post for testing.
+     */
+    public function simulateComment(Request $request)
+    {
+        $validated = $request->validate([
+            'customer_name' => 'nullable|string',
+            'comment_text' => 'required|string',
+            'external_post_id' => 'nullable|string'
+        ]);
+
+        $account = \App\Models\SocialAccount::where('platform', 'facebook')->where('is_active', true)->latest()->first();
+
+        $comment = Comment::create([
+            'social_account_id' => $account->id ?? 1,
+            'platform' => 'facebook',
+            'external_comment_id' => 'c_' . uniqid(),
+            'external_post_id' => $validated['external_post_id'] ?? 'post_1001',
+            'customer_name' => $validated['customer_name'] ?? 'Test Commenter',
+            'customer_id' => 'cust_' . rand(100, 999),
+            'comment_text' => $validated['comment_text'],
+            'reply_status' => 'pending',
+        ]);
+
+        \App\Jobs\GenerateCommentReply::dispatchSync($comment->id);
+
+        $comment->refresh();
+
+        return response()->json([
+            'success' => true,
+            'comment' => $comment,
+            'ai_reply' => $comment->ai_reply_text
+        ]);
     }
 }

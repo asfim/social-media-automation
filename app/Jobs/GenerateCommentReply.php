@@ -31,34 +31,44 @@ class GenerateCommentReply implements ShouldQueue
             return;
         }
 
-        $token = $comment->account->access_token ?? null;
-        if (!$token) {
-            Log::warning("Comment {$comment->id}: no access token, reply not sent.");
-            return;
+        $account = $comment->account;
+        if (!$account) {
+            $account = \App\Models\SocialAccount::where('platform', 'facebook')->where('is_active', true)->latest()->first();
         }
 
-        $result = $aiService->generateResponse($comment->comment_text, $comment->platform, 'comment', [], $comment->account);
+        $token = $account->access_token ?? null;
 
-        // Try public comment reply first
-        $sent = $metaService->replyToComment($token, $comment->external_comment_id, $result['reply']);
+        $result = $aiService->generateResponse($comment->comment_text, $comment->platform ?? 'facebook', 'comment', [], $account);
 
-        // Fallback: If public reply fails (e.g. permission restriction), send a private Messenger DM to the commenter
-        if (!$sent['ok']) {
-            Log::info("Public comment reply failed for comment {$comment->id}, trying private Messenger reply...");
-            $privateSent = $metaService->sendPrivateReplyToComment($token, $comment->external_comment_id, "Hello! Regarding your comment: " . $result['reply']);
-            if ($privateSent['ok']) {
-                $sent = $privateSent;
+        // Convert [PRODUCT_CARD:id] tags to readable plain text for public Facebook comments
+        $replyText = $result['reply'];
+        $replyText = preg_replace('/\[PRODUCT_CARD:(\d+)\]/', '', $replyText);
+        $replyText = trim(preg_replace('/\n{3,}/', "\n\n", $replyText));
+
+        $sent = ['ok' => false, 'error' => 'No access token'];
+
+        if ($token) {
+            // Try public comment reply first
+            $sent = $metaService->replyToComment($token, $comment->external_comment_id, $replyText);
+
+            // Fallback: If public reply fails (e.g. permission restriction), try sending a private Messenger DM
+            if (!$sent['ok']) {
+                Log::info("Public comment reply failed for comment {$comment->id}, trying private Messenger reply...");
+                $privateSent = $metaService->sendPrivateReplyToComment($token, $comment->external_comment_id, $replyText);
+                if ($privateSent['ok']) {
+                    $sent = $privateSent;
+                }
             }
         }
 
         $comment->update([
-            'ai_classification' => $result['intent'],
-            'ai_reply_text' => $result['reply'],
+            'ai_classification' => $result['intent'] ?? 'auto_reply',
+            'ai_reply_text' => $replyText,
             'reply_status' => 'replied',
         ]);
 
         if (!$sent['ok']) {
-            Log::warning("Comment {$comment->id}: reply failed to send to Meta: " . $sent['error'] . ". Saved locally anyway.");
+            Log::warning("Comment {$comment->id}: reply failed to send to Meta: " . ($sent['error'] ?? 'unknown error') . ". Saved locally anyway.");
         }
     }
 }

@@ -56,7 +56,10 @@ class MetaSettingsController extends Controller
 
         $sub = $meta->subscribePage($account->account_id, $token);
 
-        $message = "Connected to Facebook Page: {$account->account_name}.";
+        // Automatically sync Page Info, Posts, Images & Captions for AI auto-reply
+        $meta->syncPageDataToDatabase($account);
+
+        $message = "Connected to Facebook Page: {$account->account_name}. Page posts, images, captions & info synced for AI Auto-Reply.";
         if (!$sub['ok']) {
             return back()->with('success', $message)
                 ->with('warning', 'Could not auto-subscribe the page to webhooks (' . $sub['error'] . '). Subscribe it manually in the Meta Developer Portal.');
@@ -73,5 +76,21 @@ class MetaSettingsController extends Controller
         SocialAccount::where('platform', 'facebook')->update(['is_active' => false]);
 
         return back()->with('success', 'Facebook page disconnected.');
+    }
+
+    /**
+     * Manually Sync Facebook Page Posts, Captions & Info
+     */
+    public function syncFacebook(MetaService $meta)
+    {
+        $account = SocialAccount::where('platform', 'facebook')->where('is_active', true)->latest()->first();
+
+        if (!$account) {
+            return back()->withErrors(['account' => 'No active Facebook page connected.']);
+        }
+
+        $meta->syncPageDataToDatabase($account);
+
+        return back()->with('success', 'Facebook Page posts, captions, images & info synced successfully! AI will now use your latest Facebook posts.');
     }
 }

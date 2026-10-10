@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\BusinessSetting;
 use App\Models\Faq;
 use App\Models\Product;
+use App\Services\AI\AIService;
 
 class DashboardApiController extends Controller
 {
@@ -88,9 +89,17 @@ class DashboardApiController extends Controller
             'name' => 'required|string',
             'price' => 'nullable|numeric',
             'description' => 'nullable|string',
-            'category' => 'nullable|string'
+            'category' => 'nullable|string',
+            'image' => 'nullable|string',
+            'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120'
         ]);
 
+        if ($request->hasFile('image_file')) {
+            $path = $request->file('image_file')->store('products', 'public');
+            $validated['image'] = asset('storage/' . $path);
+        }
+
+        unset($validated['image_file']);
         $product = Product::create($validated);
 
         return response()->json(['success' => true, 'data' => $product]);
@@ -102,46 +111,50 @@ class DashboardApiController extends Controller
             'name' => 'required|string',
             'price' => 'nullable|numeric',
             'description' => 'nullable|string',
-            'category' => 'nullable|string'
+            'category' => 'nullable|string',
+            'image' => 'nullable|string',
+            'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120'
         ]);
 
+        if ($request->hasFile('image_file')) {
+            $path = $request->file('image_file')->store('products', 'public');
+            $validated['image'] = asset('storage/' . $path);
+        }
+
+        unset($validated['image_file']);
         $product->update($validated);
 
         return response()->json(['success' => true, 'data' => $product]);
     }
 
+    public function deleteProduct(Product $product)
+    {
+        $product->delete();
+        return response()->json(['success' => true]);
+    }
+
     /**
-     * Handle Playground Chat (Simulates AI response via backend)
+     * Handle Playground Chat (Invokes AIService for real intelligent human Bangla response)
      */
     public function simulateChat(Request $request)
     {
-        $message = $request->input('message');
+        $message = $request->input('message', '');
         
-        // This is where we would normally call $this->aiService->generateResponse($message)
-        // For now, we simulate intelligent backend logic:
-        
-        $textLower = strtolower($message);
-        $response = "I am the Backend AI Service! I received your message: '{$message}'. Currently waiting for an OpenAI API Key to be configured in settings.";
-        $intent = "General";
-        $confidence = "80%";
-        
-        if (str_contains($textLower, 'price') || str_contains($textLower, 'cost') || str_contains($textLower, 'taka')) {
-            $response = "As per the database, eCommerce websites start at 20,000 BDT. Shall I create a lead profile for you?";
-            $intent = "Pricing Inquiry";
-            $confidence = "98%";
-        } elseif (str_contains($textLower, 'location') || str_contains($textLower, 'where') || str_contains($textLower, 'address')) {
-            $response = "Our office is at Banani, Road 11, Dhaka. Come visit us!";
-            $intent = "Location Inquiry";
-            $confidence = "95%";
+        if (trim($message) === '') {
+            return response()->json([
+                'reply' => 'অনুগ্রহ করে কিছু লিখুন!',
+                'intent' => 'Empty',
+                'confidence' => '100%'
+            ]);
         }
 
-        // Simulate a slight API delay
-        sleep(1);
+        $aiService = app(AIService::class);
+        $result = $aiService->generateResponse($message, 'web', 'message');
 
         return response()->json([
-            'reply' => $response,
-            'intent' => $intent,
-            'confidence' => $confidence
+            'reply' => $result['reply'],
+            'intent' => ucfirst($result['intent'] ?? 'General'),
+            'confidence' => ($result['confidence'] ?? 90) . '%'
         ]);
     }
 }

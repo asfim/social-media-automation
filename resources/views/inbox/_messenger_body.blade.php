@@ -1,3 +1,44 @@
+@php
+    $allProducts = \App\Models\Product::where('status', true)->get()->keyBy('id');
+    $defaultImage = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80';
+
+    if (!function_exists('renderFormattedMessage')) {
+        function renderFormattedMessage($messageText, $allProducts, $convId, $defaultImage) {
+            $escaped = e($messageText);
+
+            $output = preg_replace_callback('/\[PRODUCT_CARD:(\d+)\]/', function($matches) use ($allProducts, $convId, $defaultImage) {
+                $pId = (int)$matches[1];
+                $prod = $allProducts->get($pId);
+                
+                if (!$prod) {
+                    $prod = $allProducts->values()->get(($pId - 1) % max(1, $allProducts->count()));
+                }
+
+                if (!$prod) return '';
+
+                $imgUrl = !empty($prod->image) ? e($prod->image) : $defaultImage;
+                $priceDisplay = '৳' . number_format($prod->discount_price ?: $prod->price, 0);
+                $originalPrice = ($prod->discount_price && $prod->discount_price > 0) ? '<span class="text-muted text-decoration-line-through ms-1" style="font-size: 0.75rem;">৳' . number_format($prod->price, 0) . '</span>' : '';
+                $badge = ($prod->discount_price && $prod->discount_price > 0) ? '<span class="position-absolute top-0 end-0 bg-danger text-white badge rounded-pill m-2 shadow-sm" style="font-size: 0.65rem;">অফার</span>' : '';
+
+                return '<div class="product-card-item card border-0 shadow-sm my-2 p-2 bg-white rounded-4 overflow-hidden text-start d-inline-block align-top me-2 mb-2" style="width: 220px; border: 1px solid #CBD5E1 !important; box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;">'
+                    . '<div class="position-relative mb-2">'
+                    . '<img src="' . $imgUrl . '" onerror="this.src=\'' . $defaultImage . '\'" class="w-100 rounded-3" style="height: 125px; object-fit: cover;">'
+                    . $badge
+                    . '</div>'
+                    . '<div class="px-1">'
+                    . '<h6 class="fw-bold text-dark mb-1 text-truncate" title="' . e($prod->name) . '" style="font-size: 0.85rem;">' . e($prod->name) . '</h6>'
+                    . '<div class="mb-2" style="font-size: 0.875rem;"><span class="fw-bold text-success">' . $priceDisplay . '</span>' . $originalPrice . '</div>'
+                    . '<a href="' . route('checkout', ['productId' => $prod->id]) . '?conversation_id=' . $convId . '" target="_blank" class="btn btn-sm btn-success w-100 rounded-pill fw-bold text-white shadow-sm" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); border: none; padding: 7px 10px;">'
+                    . '<i class="fa-solid fa-cart-shopping me-1"></i> অর্ডার করুন (Order Now)</a>'
+                    . '</div></div>';
+            }, $escaped);
+
+            return nl2br($output);
+        }
+    }
+@endphp
+
 <div class="inbox-container">
 
     <!-- Sidebar: Conversations List -->
@@ -62,6 +103,9 @@
                 </span>
             </div>
             <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                <button id="simulateBtn" class="btn btn-sm btn-emerald rounded-pill px-3 text-white shadow-sm" style="background: #10B981;" title="Simulate customer message to test Bangla reply & products">
+                    <i class="fa-solid fa-vial me-1"></i> Test Customer Chat
+                </button>
                 <button id="toggleAiBtn" class="btn btn-sm btn-outline-danger rounded-pill px-3">
                     <i class="fa-solid fa-user me-1"></i> <span>{{ $activeConversation->ai_active ? 'Take Over' : 'Resume AI' }}</span>
                 </button>
@@ -71,22 +115,36 @@
             </div>
         </div>
 
+        <!-- Simulation Test Bar -->
+        <div id="simBar" class="bg-light border-bottom p-2 px-3 d-none">
+            <div class="d-flex align-items-center gap-2">
+                <span class="small fw-bold text-muted flex-shrink-0"><i class="fa-solid fa-user me-1"></i> Test Customer:</span>
+                <button class="btn btn-sm btn-outline-secondary rounded-pill sim-quick-btn" data-msg="আমি প্রোডাক্ট দেখতে চাই">প্রোডাক্ট দেখান</button>
+                <button class="btn btn-sm btn-outline-secondary rounded-pill sim-quick-btn" data-msg="দাম কত?">দাম কত?</button>
+                <button class="btn btn-sm btn-outline-secondary rounded-pill sim-quick-btn" data-msg="অর্ডার করবো কিভাবে?">অর্ডার নিয়ম</button>
+                <div class="input-group input-group-sm flex-grow-1">
+                    <input type="text" id="simCustomMsg" class="form-control" placeholder="Type custom customer message in Bangla/Banglish...">
+                    <button class="btn btn-success" type="button" id="simSendBtn"><i class="fa-solid fa-paper-plane me-1"></i> Send</button>
+                </div>
+            </div>
+        </div>
+
         <div class="chat-history" id="chatHistory">
             @forelse($messages as $msg)
                 @if($msg->sender_type === 'customer')
                     <div class="message received">
-                        {{ $msg->message_text }}
+                        {!! nl2br(e($msg->message_text)) !!}
                         <div class="message-time">{{ $msg->created_at->format('h:i A') }}</div>
                     </div>
                 @elseif($msg->sender_type === 'ai')
                     <div class="message ai-sent">
                         <div class="mb-1"><small class="fw-bold"><i class="fa-solid fa-wand-magic-sparkles me-1"></i> AI Assistant</small></div>
-                        {{ $msg->message_text }}
+                        {!! renderFormattedMessage($msg->message_text, $allProducts, $activeConversation->id, $defaultImage) !!}
                         <div class="message-time text-end">{{ $msg->created_at->format('h:i A') }}</div>
                     </div>
                 @else
                     <div class="message sent">
-                        {{ $msg->message_text }}
+                        {!! nl2br(e($msg->message_text)) !!}
                         <div class="message-time text-end">{{ $msg->created_at->format('h:i A') }}</div>
                     </div>
                 @endif
@@ -100,7 +158,7 @@
 
         <div class="chat-input-container">
             <form class="chat-input" id="sendForm">
-                <input type="text" id="msgInput" placeholder="Type your message to take over..." autocomplete="off" maxlength="2000">
+                <input type="text" id="msgInput" placeholder="Type your admin message..." autocomplete="off" maxlength="2000">
                 <button type="submit" class="btn btn-primary shadow-sm" id="sendBtn" title="Send Message">
                     <i class="fa-solid fa-paper-plane"></i>
                 </button>
@@ -186,6 +244,47 @@
     const history = document.getElementById('chatHistory');
     if (history) history.scrollTop = history.scrollHeight;
 
+    const defaultImg = '{{ $defaultImage }}';
+    const productsMap = @json($allProducts);
+    const productsArray = Object.values(productsMap);
+
+    function parseProductCardsJs(rawText, convId) {
+        if (!rawText) return '';
+        let text = rawText;
+
+        text = text.replace(/\[PRODUCT_CARD:(\d+)\]/g, function(match, idStr) {
+            const pId = parseInt(idStr, 10);
+            let prod = productsMap[pId];
+            
+            if (!prod && productsArray.length > 0) {
+                prod = productsArray[(pId - 1) % productsArray.length];
+            }
+
+            if (!prod) return '';
+
+            const imgUrl = prod.image ? prod.image : defaultImg;
+            const priceDisplay = '৳' + Number(prod.discount_price || prod.price).toLocaleString();
+            const originalPrice = (prod.discount_price && prod.discount_price > 0) ? `<span class="text-muted text-decoration-line-through ms-1" style="font-size: 0.75rem;">৳${Number(prod.price).toLocaleString()}</span>` : '';
+            const badge = (prod.discount_price && prod.discount_price > 0) ? '<span class="position-absolute top-0 end-0 bg-danger text-white badge rounded-pill m-2 shadow-sm" style="font-size: 0.65rem;">অফার</span>' : '';
+
+            return `<div class="product-card-item card border-0 shadow-sm my-2 p-2 bg-white rounded-4 overflow-hidden text-start d-inline-block align-top me-2 mb-2" style="width: 220px; border: 1px solid #CBD5E1 !important; box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;">
+                <div class="position-relative mb-2">
+                    <img src="${imgUrl}" onerror="this.src='${defaultImg}'" class="w-100 rounded-3" style="height: 125px; object-fit: cover;">
+                    ${badge}
+                </div>
+                <div class="px-1">
+                    <h6 class="fw-bold text-dark mb-1 text-truncate" title="${prod.name}" style="font-size: 0.85rem;">${prod.name}</h6>
+                    <div class="mb-2" style="font-size: 0.875rem;"><span class="fw-bold text-success">${priceDisplay}</span>${originalPrice}</div>
+                    <a href="/checkout/${prod.id}?conversation_id=${convId || ''}" target="_blank" class="btn btn-sm btn-success w-100 rounded-pill fw-bold text-white shadow-sm" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); border: none; padding: 7px 10px;">
+                        <i class="fa-solid fa-cart-shopping me-1"></i> অর্ডার করুন (Order Now)
+                    </a>
+                </div>
+            </div>`;
+        });
+
+        return text.replace(/\n/g, '<br>');
+    }
+
     // Search filter
     const searchInput = document.getElementById('convSearch');
     if (searchInput) {
@@ -197,12 +296,21 @@
         });
     }
 
-    // Toggle Details Sidebar (Right Panel)
+    // Toggle Details Sidebar
     const toggleInfoBtn = document.getElementById('toggleInfoBtn');
     const inboxInfo = document.getElementById('inboxInfo');
     if (toggleInfoBtn && inboxInfo) {
         toggleInfoBtn.addEventListener('click', () => {
             inboxInfo.classList.toggle('show');
+        });
+    }
+
+    // Toggle Simulation Bar
+    const simulateBtn = document.getElementById('simulateBtn');
+    const simBar = document.getElementById('simBar');
+    if (simulateBtn && simBar) {
+        simulateBtn.addEventListener('click', () => {
+            simBar.classList.toggle('d-none');
         });
     }
 
@@ -237,6 +345,7 @@
         });
     }
 
+    // Send Admin Message
     const sendForm = document.getElementById('sendForm');
     if (sendForm) {
         sendForm.addEventListener('submit', async (e) => {
@@ -251,14 +360,68 @@
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.message || 'Failed to send');
                 history.insertAdjacentHTML('beforeend', `<div class="message sent">${escapeHtml(text)}<div class="message-time text-end">${data.time}</div></div>`);
-                history.scrollTop = history.scrollTop = history.scrollHeight;
+                history.scrollTop = history.scrollHeight;
                 input.value = '';
                 setHumanMode(true);
-                if (data.warning) alert('Saved, but not delivered to customer: ' + data.warning);
             } catch (err) {
                 alert(err.message);
             } finally {
                 btn.disabled = false;
+            }
+        });
+    }
+
+    // Send Simulated Customer Message
+    async function sendSimulatedCustomerMessage(text) {
+        if (!text) return;
+        try {
+            const res = await fetch(`/inbox/conversations/${convId}/simulate-customer`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({message: text})
+            });
+            const data = await res.json();
+            if (!data.success) throw new Error('Simulation failed');
+
+            // 1. Add Customer Message
+            history.insertAdjacentHTML('beforeend', `
+                <div class="message received">
+                    ${escapeHtml(data.customer_message.text).replace(/\n/g, '<br>')}
+                    <div class="message-time">${data.customer_message.time}</div>
+                </div>
+            `);
+
+            // 2. Add AI Response if available
+            if (data.ai_message) {
+                const parsedContent = parseProductCardsJs(data.ai_message.text, convId);
+                history.insertAdjacentHTML('beforeend', `
+                    <div class="message ai-sent">
+                        <div class="mb-1"><small class="fw-bold"><i class="fa-solid fa-wand-magic-sparkles me-1"></i> AI Assistant</small></div>
+                        ${parsedContent}
+                        <div class="message-time text-end">${data.ai_message.time}</div>
+                    </div>
+                `);
+            }
+
+            history.scrollTop = history.scrollHeight;
+        } catch (err) {
+            alert(err.message);
+        }
+    }
+
+    document.querySelectorAll('.sim-quick-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            sendSimulatedCustomerMessage(this.dataset.msg);
+        });
+    });
+
+    const simSendBtn = document.getElementById('simSendBtn');
+    if (simSendBtn) {
+        simSendBtn.addEventListener('click', () => {
+            const input = document.getElementById('simCustomMsg');
+            if (input.value.trim()) {
+                sendSimulatedCustomerMessage(input.value.trim());
+                input.value = '';
             }
         });
     }

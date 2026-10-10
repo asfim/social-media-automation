@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SocialInboxController;
 use App\Http\Controllers\CRMController;
 use App\Http\Controllers\MetaSettingsController;
+use App\Http\Controllers\OrderController;
 
 // Dashboard
 Route::get('/', function () {
@@ -15,10 +16,22 @@ Route::get('/', function () {
 Route::prefix('inbox')->name('inbox.')->group(function () {
     Route::get('/messenger', [SocialInboxController::class, 'messenger'])->name('messenger');
     Route::get('/comments', [SocialInboxController::class, 'comments'])->name('comments');
+    Route::post('/comments/simulate', [SocialInboxController::class, 'simulateComment'])->name('comments.simulate');
     Route::get('/conversations', [SocialInboxController::class, 'conversations'])->name('conversations');
     Route::post('/conversations/{id}/send', [SocialInboxController::class, 'sendMessage'])->name('send');
     Route::post('/conversations/{id}/toggle-ai', [SocialInboxController::class, 'toggleAi'])->name('toggle-ai');
+    Route::post('/conversations/{id}/simulate-customer', [OrderController::class, 'simulateCustomerMessage'])->name('simulate-customer');
 });
+
+// Admin Orders
+Route::prefix('orders')->name('orders.')->group(function () {
+    Route::get('/', [OrderController::class, 'index'])->name('index');
+    Route::post('/{id}/status', [OrderController::class, 'updateStatus'])->name('update-status');
+});
+
+// Customer Checkout Flow
+Route::get('/checkout/{productId?}', [OrderController::class, 'checkout'])->name('checkout');
+Route::post('/checkout', [OrderController::class, 'store'])->name('checkout.store');
 
 // Automation
 Route::prefix('automation')->name('automation.')->group(function () {
@@ -59,6 +72,7 @@ Route::prefix('settings')->name('settings.')->group(function () {
     Route::get('/business', function () { return view('settings.business'); })->name('business');
     Route::get('/facebook', [MetaSettingsController::class, 'facebook'])->name('facebook');
     Route::post('/facebook', [MetaSettingsController::class, 'saveFacebook'])->name('facebook.save');
+    Route::post('/facebook/sync', [MetaSettingsController::class, 'syncFacebook'])->name('facebook.sync');
     Route::post('/facebook/disconnect', [MetaSettingsController::class, 'disconnectFacebook'])->name('facebook.disconnect');
     Route::get('/instagram', function () { return view('settings.instagram'); })->name('instagram');
     Route::get('/whatsapp', function () { return view('settings.whatsapp'); })->name('whatsapp');

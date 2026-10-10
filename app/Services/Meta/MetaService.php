@@ -4,6 +4,9 @@ namespace App\Services\Meta;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\Models\BusinessSetting;
+use App\Models\BusinessKnowledge;
+use App\Models\SocialAccount;
 
 class MetaService
 {
@@ -12,7 +15,6 @@ class MetaService
      */
     public function verifyWebhook(array $requestData): ?string
     {
-        // PHP converts "hub.mode" into "hub_mode" in request data
         $hubMode = $requestData['hub_mode'] ?? ($requestData['hub.mode'] ?? null);
         $hubVerifyToken = $requestData['hub_verify_token'] ?? ($requestData['hub.verify_token'] ?? null);
         $hubChallenge = $requestData['hub_challenge'] ?? ($requestData['hub.challenge'] ?? null);
@@ -68,7 +70,6 @@ class MetaService
     {
         $res = $this->result(Http::timeout(15)->withToken($token)->get($this->graph('me'), ['fields' => 'id,name']));
         
-        // If GET /me fails (e.g. missing pages_read_engagement), fallback to debug_token
         if (!$res['ok']) {
             $debugRes = Http::timeout(15)->get($this->graph('debug_token'), [
                 'input_token' => $token,
@@ -105,7 +106,7 @@ class MetaService
      */
     public function fetchPageDetails(string $pageId, string $token): array
     {
-        return \Cache::remember("fb_page_details_{$pageId}", 3600, function () use ($pageId, $token) {
+        return \Cache::remember("fb_page_details_{$pageId}", 1800, function () use ($pageId, $token) {
             $res = $this->result(Http::timeout(10)->withToken($token)->get($this->graph($pageId), [
                 'fields' => 'id,name,about,description,emails,phone,single_line_address,website'
             ]));
@@ -118,13 +119,70 @@ class MetaService
      */
     public function fetchPagePosts(string $pageId, string $token): array
     {
-        return \Cache::remember("fb_page_posts_{$pageId}", 1800, function () use ($pageId, $token) {
+        return \Cache::remember("fb_page_posts_{$pageId}", 900, function () use ($pageId, $token) {
             $res = $this->result(Http::timeout(12)->withToken($token)->get($this->graph("{$pageId}/published_posts"), [
                 'fields' => 'message,caption,description,created_time,attachments{media,title,description}',
-                'limit' => 15,
+                'limit' => 20,
             ]));
             return $res['ok'] ? ($res['data']['data'] ?? []) : [];
         });
+    }
+
+    /**
+     * Auto Sync Page Info, Posts, Images & Captions to Database so AI can answer customer questions.
+     */
+    public function syncPageDataToDatabase(SocialAccount $account): void
+    {
+        if (empty($account->account_id) || empty($account->access_token)) return;
+
+        try {
+            // 1. Sync Page Profile Info to BusinessSettings
+            $details = $this->fetchPageDetails($account->account_id, $account->access_token);
+            if (!empty($details)) {
+                $setting = BusinessSetting::first() ?? new BusinessSetting();
+                $setting->business_name = $details['name'] ?? $account->account_name;
+                if (!empty($details['about'])) $setting->business_description = $details['about'];
+                if (!empty($details['description'])) $setting->business_description = $details['description'];
+                if (!empty($details['single_line_address'])) $setting->business_location = $details['single_line_address'];
+                if (!empty($details['phone'])) $setting->phone = $details['phone'];
+                if (!empty($details['emails'][0])) $setting->email = $details['emails'][0];
+                if (!empty($details['website'])) $setting->website = $details['website'];
+                $setting->save();
+            }
+
+            // 2. Sync Page Posts & Image Captions to BusinessKnowledge
+            $posts = $this->fetchPagePosts($account->account_id, $account->access_token);
+            foreach ($posts as $idx => $post) {
+                $contentParts = [];
+                if (!empty($post['message'])) $contentParts[] = $post['message'];
+                if (!empty($post['caption'])) $contentParts[] = "Caption: " . $post['caption'];
+                if (!empty($post['description'])) $contentParts[] = "Description: " . $post['description'];
+
+                if (!empty($post['attachments']['data'])) {
+                    foreach ($post['attachments']['data'] as $att) {
+                        if (!empty($att['title'])) $contentParts[] = "Image Title: " . $att['title'];
+                        if (!empty($att['description'])) $contentParts[] = "Image Caption: " . $att['description'];
+                    }
+                }
+
+                if (!empty($contentParts)) {
+                    $title = "Facebook Page Post #" . ($idx + 1);
+                    $fullContent = implode("\n", array_unique($contentParts));
+
+                    BusinessKnowledge::updateOrCreate(
+                        ['title' => $title],
+                        [
+                            'category' => 'facebook_post',
+                            'content' => $fullContent,
+                            'is_active' => true,
+                        ]
+                    );
+                }
+            }
+            Log::info("Synced Facebook Page information and posts for account {$account->account_name}");
+        } catch (\Throwable $e) {
+            Log::warning("Failed to sync Facebook Page data: " . $e->getMessage());
+        }
     }
 
     /**

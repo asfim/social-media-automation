@@ -36,5 +36,7 @@ Route::prefix('internal')->group(function () {
     Route::post('/ai/faq', [DashboardApiController::class, 'addFaq']);
     Route::post('/ai/products', [DashboardApiController::class, 'addProduct']);
     Route::put('/ai/products/{product}', [DashboardApiController::class, 'updateProduct']);
+    Route::post('/ai/products/{product}', [DashboardApiController::class, 'updateProduct']);
+    Route::delete('/ai/products/{product}', [DashboardApiController::class, 'deleteProduct']);
     Route::post('/ai/chat/simulate', [DashboardApiController::class, 'simulateChat']);
 });

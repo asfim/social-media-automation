@@ -73,6 +73,17 @@
                     </ul>
                 </li>
                 
+                <p>E-Commerce</p>
+                <li class="{{ request()->routeIs('orders.*') ? 'active' : '' }}">
+                    <a href="{{ route('orders.index') }}">
+                        <i class="fa-solid fa-cart-shopping me-2"></i> Orders
+                        @php $pendingCount = \App\Models\Order::where('status', 'pending')->count(); @endphp
+                        @if($pendingCount > 0)
+                            <span class="badge bg-danger rounded-pill float-end text-white">{{ $pendingCount }}</span>
+                        @endif
+                    </a>
+                </li>
+                
                 <p>CRM</p>
                 <li>
                     <a href="#leadsSubmenu" data-bs-toggle="collapse" aria-expanded="{{ request()->is('leads*') ? 'true' : 'false' }}" class="dropdown-toggle">

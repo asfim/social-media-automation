@@ -40,10 +40,16 @@
                     </div>
                 </div>
                 @if($account)
-                    <form action="{{ route('settings.facebook.disconnect') }}" method="POST" onsubmit="return confirm('Disconnect this page? Auto-replies will stop.');">
-                        @csrf
-                        <button class="btn btn-outline-danger rounded-pill px-4"><i class="fa-solid fa-link-slash me-2"></i> Disconnect</button>
-                    </form>
+                    <div class="d-flex gap-2">
+                        <form action="{{ route('settings.facebook.sync') }}" method="POST">
+                            @csrf
+                            <button class="btn btn-outline-primary rounded-pill px-3"><i class="fa-solid fa-rotate me-2"></i> Sync Page Data</button>
+                        </form>
+                        <form action="{{ route('settings.facebook.disconnect') }}" method="POST" onsubmit="return confirm('Disconnect this page? Auto-replies will stop.');">
+                            @csrf
+                            <button class="btn btn-outline-danger rounded-pill px-3"><i class="fa-solid fa-link-slash me-2"></i> Disconnect</button>
+                        </form>
+                    </div>
                 @else
                     <a href="#credentialsForm" class="btn btn-primary rounded-pill px-4"><i class="fa-solid fa-link me-2"></i> Connect Page</a>
                 @endif
